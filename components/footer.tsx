@@ -1,0 +1,1 @@
+export function Footer() { return <footer className="site-footer"><div className="container footer-row"><span>StudySpot — Find your place to focus.</span><span>โครงการวิชา Web Application Development</span></div></footer>; }
