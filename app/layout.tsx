@@ -1,3 +1,5 @@
+// Server Component: layout ไม่มี state — ห่อด้วย AppProviders (client) เพื่อให้ทุกหน้าใช้ Global state ได้
+// ไม่อ่าน session ที่นี่ เพราะ cookies() ใน layout จะทำให้ทุกหน้ากลายเป็น dynamic และ ISR/SSG ใช้ไม่ได้
 import type { Metadata } from "next";
 import "./globals.css";
 import { Header } from "@/components/header";

@@ -1,7 +1,12 @@
 import Link from "next/link";
-import { spaces } from "@/lib/spaces";
+import { getSpaces } from "@/lib/data";
 import { SpaceCard } from "@/components/space-card";
 
-export default function HomePage() {
+// Server Component + ISR: ดึง "พื้นที่ยอดนิยม" จาก Supabase ตอน build แล้ว regenerate เบื้องหลังทุก 1 ชั่วโมง
+// เลือก ISR เพราะข้อมูลห้องแทบไม่เปลี่ยน ผู้ใช้ได้ HTML ที่ cache ไว้เร็วเหมือน static แต่ข้อมูลไม่ค้างนานเกินไป
+export const revalidate = 3600;
+
+export default async function HomePage() {
+  const spaces = await getSpaces();
   return <><section className="hero"><div className="container hero-grid"><div><span className="eyebrow">พื้นที่ของคุณ รออยู่ตรงนี้</span><h1>เจอที่นั่งที่ใช่<br />แล้ว <em>โฟกัส</em> ให้เต็มที่</h1><p>ค้นหาพื้นที่อ่านหนังสือและห้องทำงานกลุ่มทั่วมหาวิทยาลัย เช็กเวลาว่าง แล้วจองได้ในไม่กี่คลิก</p><div className="hero-actions"><Link href="/spaces" className="button button-primary">ค้นหาพื้นที่ →</Link><Link href="#how" className="button button-light">ใช้งานอย่างไร</Link></div><div className="stats"><div className="stat"><b>24+</b><span>พื้นที่พร้อมใช้</span></div><div className="stat"><b>6</b><span>อาคารในมหาวิทยาลัย</span></div><div className="stat"><b>ง่าย</b><span>จองได้ภายใน 1 นาที</span></div></div></div><div className="hero-card"><div className="room-image"><span className="availability">● ว่างวันนี้ 4 ช่วง</span></div><div className="hero-room-bottom"><div><small>LEARNING COMMONS · ชั้น 2</small><strong>Aurora Study Lounge</strong></div><div className="avatar-stack"><span>จ</span><span>น</span><span>พ</span></div></div></div></div></section><section className="section"><div className="container"><div className="section-head"><div><span className="eyebrow">เลือกได้เลย</span><h2>พื้นที่ยอดนิยม</h2></div><Link href="/spaces" className="text-link">ดูทุกพื้นที่ →</Link></div><div className="space-grid">{spaces.slice(0, 3).map(space => <SpaceCard space={space} key={space.id} />)}</div></div></section><section className="how section" id="how"><div className="container"><span className="eyebrow">ง่ายใน 3 ขั้นตอน</span><h2>ใช้เวลาน้อยลงกับการหาที่ และมากขึ้นกับสิ่งที่สำคัญ</h2><div className="step-grid"><div className="step"><span className="step-num">01</span><h3>ค้นหาพื้นที่</h3><p>เลือกอาคาร จำนวนที่นั่ง หรืออุปกรณ์ที่ต้องใช้ แล้วเจอห้องที่เหมาะกับคุณ</p></div><div className="step"><span className="step-num">02</span><h3>เลือกเวลาว่าง</h3><p>ดูตารางเวลาแบบเรียลไทม์ เลือกช่วงเวลาที่สะดวกได้สูงสุด 4 ชั่วโมง</p></div><div className="step"><span className="step-num">03</span><h3>จองและไปโฟกัส</h3><p>ยืนยันการจอง รับข้อมูลห้อง แล้วใช้เวลาของคุณให้คุ้มที่สุด</p></div></div></div></section></>;
 }

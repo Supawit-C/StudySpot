@@ -1,4 +1,5 @@
 "use client";
+// Client Component: ปุ่มหัวใจต้องใช้ onClick และอ่าน/เขียน FavoritesContext
 
 import Link from "next/link";
 import type { Space } from "@/lib/spaces";
