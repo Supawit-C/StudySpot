@@ -5,6 +5,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { hasSupabase } from "@/lib/mode";
+import { getSpace } from "@/lib/data";
 import { DEMO_MAX_BOOKINGS, readDemoBookings, readDemoUser, writeDemoBookings } from "@/lib/demo-store";
 import { createClient } from "@/lib/supabase/server";
 import { bookingSchema, type BookingInput } from "@/lib/schemas";
@@ -18,6 +19,8 @@ export async function createBooking(input: BookingInput): Promise<ActionResult> 
   if (!parsed.success) return { error: parsed.error.issues[0].message };
   const { spaceId, date, slots, note } = parsed.data;
   const sortedSlots: string[] = [...slots].sort();
+  // input มาจาก client ได้ทุกค่า ต้องตรวจว่าห้องมีอยู่จริง
+  if (!(await getSpace(spaceId))) return { error: "ไม่พบพื้นที่นี้" };
 
   if (hasSupabase) {
     const supabase = await createClient();
