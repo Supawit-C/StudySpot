@@ -5,7 +5,7 @@
 
 import { useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { useForm } from "react-hook-form";
+import { useController, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import type { Space } from "@/lib/spaces";
 import { MAX_SLOTS, SLOTS, prettyDate, today } from "@/lib/spaces";
@@ -14,16 +14,18 @@ import { createBooking } from "@/app/actions/bookings";
 
 export function BookingForm({ space, date, booked }: { space: Space; date: string; booked: string[] }) {
   const router = useRouter(); const [loadingDate, startTransition] = useTransition();
-  const { register, handleSubmit, watch, setValue, setError, formState: { errors, isSubmitting } } = useForm<BookingInput>({
-    resolver: zodResolver(bookingSchema),
+  const { register, handleSubmit, watch, control, setError, formState: { errors, isSubmitting } } = useForm<BookingInput>({
+    resolver: zodResolver(bookingSchema), mode: "onChange",
     defaultValues: { spaceId: space.id, date, slots: [], note: "" },
   });
-  const selected = watch("slots"); const currentDate = watch("date");
+  // ช่องเวลาเป็นปุ่ม ไม่ใช่ input จึงผูกกับฟอร์มผ่าน useController
+  const { field: slotsField } = useController({ name: "slots", control });
+  const selected = slotsField.value; const currentDate = watch("date");
 
   const toggle = (slot: BookingInput["slots"][number]) => {
     const next = selected.includes(slot) ? selected.filter(item => item !== slot) : [...selected, slot].sort();
     // ให้ zod เป็นคนแจ้ง error เมื่อเกิน 4 ช่วง แทนการเงียบไม่ให้กด
-    setValue("slots", next, { shouldValidate: true });
+    slotsField.onChange(next);
   };
   const dateField = register("date", { onChange: event => startTransition(() => router.replace(`/book/${space.id}?date=${event.target.value}`, { scroll: false })) });
   const onSubmit = async (values: BookingInput) => { const result = await createBooking(values); if (result?.error) setError("root", { message: result.error }); };

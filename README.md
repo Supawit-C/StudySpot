@@ -8,17 +8,25 @@ Stack: Next.js 15 (App Router) · React 19 · Supabase (Postgres + Auth) · reac
 
 ## เริ่มใช้งาน
 
-1. สร้างโปรเจกต์ที่ [supabase.com](https://supabase.com) แล้วเปิด **SQL Editor** → วางเนื้อหา `supabase/schema.sql` ทั้งไฟล์ → Run
-2. (สำหรับเดโม) Authentication → Sign In / Providers → Email → ปิด **Confirm email** เพื่อสมัครแล้วเข้าใช้ได้ทันที
-3. คัดลอก `.env.example` เป็น `.env.local` แล้วใส่ค่าจาก Project Settings → API
-4. รัน
+### โหมดเดโม (ไม่ต้องตั้งค่าอะไร)
 
 ```bash
 npm install
 npm run dev
 ```
 
-เปิด [http://localhost:3000](http://localhost:3000)
+ถ้ายังไม่มี env ของ Supabase แอปจะทำงานใน **โหมดเดโม** อัตโนมัติ (`lib/mode.ts`)
+
+- ข้อมูลห้องมาจาก `lib/seed.ts` (ชุดเดียวกับ seed ในฐานข้อมูล) — ISR/SSG ทำงานเหมือนเดิม
+- login/register รับอีเมลและรหัสผ่านใดก็ได้ที่ผ่าน zod แล้วเก็บผู้ใช้ใน httpOnly cookie
+- การจองเขียนผ่าน Server Action ลง httpOnly cookie (`lib/demo-store.ts`) — validate และกันจองซ้อนเหมือนของจริง แต่เห็นเฉพาะในเบราว์เซอร์นั้น
+
+### เชื่อม Supabase (ใช้งานจริง)
+
+1. สร้างโปรเจกต์ที่ [supabase.com](https://supabase.com) แล้วเปิด **SQL Editor** → วางเนื้อหา `supabase/schema.sql` ทั้งไฟล์ → Run
+2. (สำหรับเดโม) Authentication → Sign In / Providers → Email → ปิด **Confirm email** เพื่อสมัครแล้วเข้าใช้ได้ทันที
+3. คัดลอก `.env.example` เป็น `.env.local` แล้วใส่ค่าจาก Project Settings → API
+4. รัน `npm run dev` แล้วเปิด [http://localhost:3000](http://localhost:3000) — แอปจะสลับไปใช้ Supabase เอง
 
 บน Vercel ให้ใส่ `NEXT_PUBLIC_SUPABASE_URL` และ `NEXT_PUBLIC_SUPABASE_ANON_KEY` ใน Project Settings → Environment Variables แล้ว redeploy
 
@@ -55,13 +63,15 @@ npm run dev
 |---|---|---|
 | `createBooking` | `app/actions/bookings.ts` | ตรวจ session → validate ด้วย `bookingSchema` (zod) → insert → `revalidatePath("/my-bookings")` → redirect |
 | `cancelBooking` | `app/actions/bookings.ts` | ตรวจ session → ลบเฉพาะแถวของตัวเอง → `revalidatePath("/my-bookings")` |
-| `signIn`, `signUp`, `signOut` | `app/actions/auth.ts` | Supabase Auth บน server ตั้ง session cookie |
+| `signIn`, `signUp`, `signOut` | `app/actions/auth.ts` | Supabase Auth บน server ตั้ง session cookie (โหมดเดโม: ตั้ง cookie ผู้ใช้เอง) |
+
+Route Handler `GET /api/me` (`app/api/me/route.ts`) คืนผู้ใช้ปัจจุบันให้ AuthContext เพราะ session cookie เป็น httpOnly ฝั่ง client อ่านเองไม่ได้
 
 ด่านป้องกันซ้อนกัน 3 ชั้น: zod ฝั่ง client (UX) → zod ใน Server Action (ไม่เชื่อ input จาก browser) → RLS + trigger `prevent_slot_overlap` ใน Postgres (กันจองซ้อนแม้กดพร้อมกัน)
 
 ## Global State (React Context)
 
-- `AuthContext` — ผู้ใช้ที่ login อยู่ อ่านจาก Supabase session และ subscribe `onAuthStateChange`; ใช้ใน Header และฟอร์ม login
+- `AuthContext` — ผู้ใช้ที่ login อยู่ ดึงจาก `/api/me` และเรียก `refresh()` หลัง login/logout; ใช้ใน Header และฟอร์ม login
 - `FavoritesContext` — รายการโปรด เก็บใน `localStorage` ใช้ร่วมกันระหว่าง SpaceCard, FavoriteButton และหน้า Favorites
 
 ## ฟอร์มและ Validation

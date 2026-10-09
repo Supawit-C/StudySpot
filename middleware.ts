@@ -1,8 +1,11 @@
 // refresh Supabase session ทุก request เพื่อให้ cookie ไม่หมดอายุระหว่างใช้งาน
 import { NextResponse, type NextRequest } from "next/server";
 import { createServerClient } from "@supabase/ssr";
+import { hasSupabase } from "@/lib/mode";
 
 export async function middleware(request: NextRequest) {
+  // โหมดเดโมไม่มี Supabase session ให้ refresh
+  if (!hasSupabase) return NextResponse.next();
   let response = NextResponse.next({ request });
   const supabase = createServerClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!, {
     cookies: {
