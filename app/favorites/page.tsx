@@ -1,5 +1,5 @@
 // Server Component + ISR: ดึงข้อมูลห้องทั้งหมดแบบ cache 1 ชั่วโมง แล้วส่งให้ FavoritesList (client)
-// ซึ่งกรองตามรายการโปรดใน localStorage — ส่วนที่เป็นข้อมูลส่วนตัวจึงอยู่ฝั่ง browser เท่านั้น
+// ซึ่งกรองตามรายการโปรดของ account ที่ FavoritesContext ดึงจาก Supabase ฝั่ง browser
 import { getSpaces } from "@/lib/data";
 import { FavoritesList } from "@/components/favorites-list";
 

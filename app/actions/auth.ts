@@ -28,7 +28,13 @@ export async function signUp(input: RegisterInput): Promise<AuthResult> {
   if (!hasSupabase) { await writeDemoUser(demoUser(email, name)); return {}; }
   const supabase = await createClient();
   const { data, error } = await supabase.auth.signUp({ email, password, options: { data: { name } } });
-  if (error) return { error: error.code === "user_already_exists" ? "อีเมลนี้มีบัญชีอยู่แล้ว" : "สมัครสมาชิกไม่สำเร็จ กรุณาลองอีกครั้ง" };
+  if (error) {
+    console.error("Supabase sign-up failed", { code: error.code, message: error.message });
+    if (error.code === "user_already_exists") return { error: "อีเมลนี้มีบัญชีอยู่แล้ว" };
+    if (error.message === "Email signups are disabled") return { error: "ระบบยังไม่เปิดรับสมัครด้วยอีเมล กรุณาเปิด Enable Email Signups ใน Supabase" };
+    if (error.code === "over_email_send_rate_limit") return { error: "ส่งอีเมลยืนยันเกินโควตาชั่วคราว กรุณาปิด Confirm email สำหรับการเดโม หรือลองใหม่ภายหลัง" };
+    return { error: "สมัครสมาชิกไม่สำเร็จ กรุณาลองอีกครั้ง" };
+  }
   // ถ้าเปิด "Confirm email" ใน Supabase จะยังไม่มี session จนกว่าผู้ใช้กดยืนยันในอีเมล
   return data.session ? {} : { needsConfirm: true };
 }

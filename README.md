@@ -23,7 +23,7 @@ npm run dev
 
 ### เชื่อม Supabase (ใช้งานจริง)
 
-1. สร้างโปรเจกต์ที่ [supabase.com](https://supabase.com) แล้วเปิด **SQL Editor** → วางเนื้อหา `supabase/schema.sql` ทั้งไฟล์ → Run
+1. สร้างโปรเจกต์ที่ [supabase.com](https://supabase.com) แล้วเปิด **SQL Editor** → วางเนื้อหา `supabase/schema.sql` ทั้งไฟล์ → Run แล้วรัน `supabase/favorites.sql` เพื่อเปิดใช้รายการโปรดแยกตามบัญชี
 2. (สำหรับเดโม) Authentication → Sign In / Providers → Email → ปิด **Confirm email** เพื่อสมัครแล้วเข้าใช้ได้ทันที
 3. คัดลอก `.env.example` เป็น `.env.local` แล้วใส่ค่าจาก Project Settings → API
 4. รัน `npm run dev` แล้วเปิด [http://localhost:3000](http://localhost:3000) — แอปจะสลับไปใช้ Supabase เอง
@@ -39,7 +39,7 @@ npm run dev
 | `/spaces/[id]` | Server + `FavoriteButton` (Client) | **SSG + ISR** (`generateStaticParams`, `revalidate = 3600`) | สร้างหน้าของทุกห้องไว้ตอน build เร็วและดีต่อ SEO; ห้องใหม่ถูก render เมื่อมีคนเข้าครั้งแรก |
 | `/book/[id]` | Server + `BookingForm` (Client) | **SSR** (`dynamic = "force-dynamic"`) | ช่วงเวลาว่างต้องสดทุก request ถ้า cache อาจเห็นช่วงที่ถูกจองแล้วว่าว่าง; ตรวจ login บน server ก่อนส่งหน้า |
 | `/my-bookings` | Server + `CancelBookingButton` (Client) | **SSR** (`dynamic = "force-dynamic"`) | ข้อมูลส่วนตัวต่อผู้ใช้ อ่านจาก session cookie ทุก request |
-| `/favorites` | Server + `FavoritesList` (Client) | **ISR** (`revalidate = 3600`) | ข้อมูลห้องจาก server, ส่วนรายการโปรดอยู่ใน localStorage บน browser |
+| `/favorites` | Server + `FavoritesList` (Client) | **ISR** (`revalidate = 3600`) | ข้อมูลห้องจาก server, ส่วนรายการโปรดของผู้ใช้ดึงจาก Supabase หลังอ่าน session |
 | `/login`, `/register` | Server + `AuthForm` (Client) | Dynamic (อ่าน `?next=`) | server อ่าน `next` แล้วส่งต่อให้ฟอร์ม เพื่อพากลับหน้าที่ค้างไว้หลัง login |
 
 ## Server Component vs Client Component
@@ -50,7 +50,7 @@ npm run dev
 |---|---|---|
 | `app/**/page.tsx`, `app/layout.tsx` | Server | ดึงข้อมูลจาก Supabase บน server, กำหนด ISR/SSR |
 | `components/footer.tsx` | Server | เนื้อหาคงที่ ไม่มี interaction |
-| `components/providers.tsx` | Client | React Context + `useState`/`useEffect`/`localStorage` |
+| `components/providers.tsx` | Client | React Context + `useState`/`useEffect`/`fetch` รายการโปรดของ account |
 | `components/header.tsx` | Client | อ่านผู้ใช้จาก AuthContext, ปุ่ม logout (ถ้าอ่าน session ใน layout ทุกหน้าจะกลายเป็น dynamic) |
 | `components/space-filters.tsx` | Client | ช่องค้นหา/ตัวกรอง `onChange` + `useSearchParams` |
 | `components/space-card.tsx`, `favorite-button.tsx`, `favorites-list.tsx` | Client | toggle รายการโปรดใน FavoritesContext |
@@ -63,6 +63,7 @@ npm run dev
 |---|---|---|
 | `createBooking` | `app/actions/bookings.ts` | ตรวจ session → validate ด้วย `bookingSchema` (zod) → insert → `revalidatePath("/my-bookings")` → redirect |
 | `cancelBooking` | `app/actions/bookings.ts` | ตรวจ session → ลบเฉพาะแถวของตัวเอง → `revalidatePath("/my-bookings")` |
+| `setFavorite` | `app/actions/favorites.ts` | ตรวจ session → เพิ่ม/ลบ favorite ของ user ปัจจุบันภายใต้ RLS |
 | `signIn`, `signUp`, `signOut` | `app/actions/auth.ts` | Supabase Auth บน server ตั้ง session cookie (โหมดเดโม: ตั้ง cookie ผู้ใช้เอง) |
 
 Route Handler `GET /api/me` (`app/api/me/route.ts`) คืนผู้ใช้ปัจจุบันให้ AuthContext เพราะ session cookie เป็น httpOnly ฝั่ง client อ่านเองไม่ได้
@@ -72,7 +73,7 @@ Route Handler `GET /api/me` (`app/api/me/route.ts`) คืนผู้ใช้�
 ## Global State (React Context)
 
 - `AuthContext` — ผู้ใช้ที่ login อยู่ ดึงจาก `/api/me` และเรียก `refresh()` หลัง login/logout; ใช้ใน Header และฟอร์ม login
-- `FavoritesContext` — รายการโปรด เก็บใน `localStorage` ใช้ร่วมกันระหว่าง SpaceCard, FavoriteButton และหน้า Favorites
+- `FavoritesContext` — รายการโปรดของผู้ใช้ปัจจุบัน ดึงจาก `GET /api/favorites` และเพิ่ม/ลบผ่าน Server Action
 
 ## ฟอร์มและ Validation
 

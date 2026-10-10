@@ -51,3 +51,12 @@ export async function getMyBookings(): Promise<Booking[]> {
   if (error) throw error;
   return data;
 }
+
+// RLS กรองให้เหลือเฉพาะรายการโปรดของผู้ใช้ใน session ปัจจุบัน
+export async function getMyFavoriteSpaceIds(): Promise<string[]> {
+  if (!hasSupabase) return [];
+  const supabase = await createClient();
+  const { data, error } = await supabase.from("favorites").select("space_id").order("created_at", { ascending: false });
+  if (error) throw error;
+  return data.map(favorite => favorite.space_id);
+}
