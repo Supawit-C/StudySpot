@@ -85,3 +85,12 @@ schema ทั้งหมดอยู่ใน `lib/schemas.ts` ใช้ร่�
 ## Responsive
 
 CSS breakpoint ที่ 800px (layout 1 คอลัมน์, เมนูแนวนอนเลื่อนได้, ตารางการจองเปลี่ยนเป็นการ์ด) และ 500px (การ์ดห้อง 1 คอลัมน์, ช่องเวลา 2 คอลัมน์)
+
+## สมาชิกผู้จัดทำและการแบ่งงาน (Contribution Log)
+
+| รหัสนักศึกษา | ชื่อ-นามสกุล | หน้าที่และความรับผิดชอบ (Contribution) |
+|---|---|---|
+| **682110183** | **พันธวีร์ ธรรมคุณ** | - ออกแบบและตั้งค่าฐานข้อมูล Supabase (Database Schema, Tables, Constraints & RLS)<br>- พัฒนาหน้า `/spaces` (รายการห้อง) และ `/spaces/[id]` (รายละเอียดห้องแบบไดนามิก)<br>- ออกแบบระบบค้นหา (Search) ตัวกรอง (Filters) และจัดการ Query Parameters<br>- วางสถาปัตยกรรม Data Fetching (ISR `revalidate = 3600` และ SSG `generateStaticParams`)<br>- จัดการตั้งค่า Environment Variables และ Deploy ระบบขึ้น Vercel |
+| **682110105** | **ศุภวิชญ์ ชัยรัตน์** | - พัฒนาระบบยืนยันตัวตน หน้า `/login`, `/register` และ Server Actions (`signIn`, `signUp`, `signOut`)<br>- พัฒนา Global State ฝั่ง Client (`AuthContext`, `AppProviders`) และ Route Handler `/api/me`<br>- พัฒนาหน้าจองห้อง `/book/[id]` และระบบเลือก Interactive Time Slots (จำกัดสูงสุด 4 ช่วงเวลา)<br>- ออกแบบระบบ Data Validation ด้วย `zod` + `react-hook-form` ครอบคลุมทั้ง Client-side และ Server-side |
+| **682110197** | **สัฏฐี ทำทอง** | - พัฒนาหน้า `/my-bookings` (รายการประวัติการจอง) พร้อมปุ่มยกเลิกการจอง (`cancelBooking` Server Action)<br>- พัฒนาหน้า `/favorites` และระบบบันทึกรายการโปรด (`FavoritesContext` เชื่อมต่อ `localStorage`)<br>- ออกแบบ Responsive Design (CSS Grid/Flexbox รองรับทั้งจอคอมพิวเตอร์และมือถือ)<br>- จัดทำเอกสารสรุปโครงการ, เขียน `README.md`, ใส่คอมเมนต์อธิบาย Server/Client Components และทดสอบ Edge Cases |
+
